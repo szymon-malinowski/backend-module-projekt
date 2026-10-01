@@ -4,3 +4,6 @@
 - npm
 - Express
 - PostgreSQL
+- Jest
+- CORS
+- CRUD methods
