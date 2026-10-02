@@ -7,3 +7,4 @@
 - Jest
 - CORS
 - CRUD methods
+- Prisma

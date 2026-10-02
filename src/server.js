@@ -1,13 +1,17 @@
 import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
+import { createApp } from './app.js';
+import { createPool } from './db.js';
 
-const app = express();
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || true }));
-app.use(express.json());
-
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+const pool = createPool();
+const app = createApp(pool);
 
 const port = process.env.PORT || 3000;
-if (process.env.NODE_ENV !== 'test') app.listen(port, () => console.log(`API listening on ${port}`));
+const server = app.listen(port, () => console.log(`API listening on ${port}`));
+for (const signal of ['SIGINT', 'SIGTERM']) {
+  process.once(signal, () => {
+    server.close(async () => {
+      await pool.end();
+    });
+  });
+}
 export default app;

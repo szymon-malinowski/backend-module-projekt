@@ -17,6 +17,8 @@
 
 Successful responses will be JSON and use 200, 201, or 204 where appropriate. Invalid input returns 400, missing authentication returns 401, insufficient permissions returns 403, missing resources return 404, and conflicts return 409.
 
+Implemented on 2 October: `GET /health` checks database connectivity and returns `200` with `{"status":"ok","database":"up"}`, or `503` with `{"status":"unavailable","database":"down"}`. It is public and does not expose connection details. Business endpoints remain planned.
+
 Example error:
 
 ```json
