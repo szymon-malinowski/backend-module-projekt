@@ -24,7 +24,7 @@ Each day follows `notes/example-plan.md`: three priorities, the main risk, and a
 
 ## 2 October 2026
 
-- [x] Implement the database connection and migrations.
+- [x] Implement the database connection and migrations; migrate the existing scaffold to Prisma ORM.
 - [x] Add the first health-check route.
 - [x] Verify migration execution and health responses, and document local database setup.
 

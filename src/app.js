@@ -9,7 +9,7 @@ export function createApp(database) {
   app.get('/health', async (req, res) => {
     res.set('Cache-Control', 'no-store');
     try {
-      await database.query('SELECT 1');
+      await database.$queryRaw`SELECT 1`;
       res.json({ status: 'ok', database: 'up' });
     } catch {
       res.status(503).json({ status: 'unavailable', database: 'down' });

@@ -8,7 +8,7 @@ Build an individual REST API for managing customers, products, orders, and order
 
 - Node.js and npm provide the runtime and dependency management.
 - Express provides the HTTP server and routing.
-- PostgreSQL stores related business data persistently.
+- PostgreSQL stores related business data persistently. Prisma ORM provides the database client, mapped models, and versioned migrations.
 - Jest will test successful requests, invalid input, and authorization failures.
 - CORS will be configured for approved clients.
 

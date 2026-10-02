@@ -1,38 +1,49 @@
 # Customer, Product, and Order REST API
 
-An individual Node.js/Express REST API backed by PostgreSQL. Current functionality includes database migrations and a database-aware health check. Business endpoints are planned in [API design](api-design.md); see the [project plan](project-plan.md) and [daily tasks](daily-todos.md).
+An individual Node.js/Express REST API backed by PostgreSQL and Prisma ORM 7. Current functionality includes Prisma migrations and a database-aware health check. Business endpoints remain planned in [API design](api-design.md); see the [project plan](project-plan.md) and [daily tasks](daily-todos.md).
 
 ## Local setup
 
-Install Node.js (with npm) and PostgreSQL, and start PostgreSQL. From the project directory:
+Install Node.js 24 LTS (or a compatible version listed in `package.json`), npm, and PostgreSQL. Start PostgreSQL, then run from the project directory:
 
 ```powershell
 npm ci
 Copy-Item .env.example .env
-```
-
-Create an empty database using your PostgreSQL account (enter its password when prompted):
-
-```powershell
 createdb -h localhost -U postgres backend_module
 ```
 
 If PostgreSQL commands are not on PATH, use their full paths, for example `& 'C:/Program Files/PostgreSQL/18/bin/createdb.exe' -h localhost -U postgres backend_module`.
 
-Edit `.env`: set `DATABASE_URL` to your database connection string, `PORT` to the HTTP port (default 3000), and `CLIENT_ORIGIN` to the permitted browser origin. The example credentials are placeholders; URL-encode special characters in passwords. `.env` is ignored by Git.
+Edit `.env`: set `DATABASE_URL` to your PostgreSQL connection string, `PORT` to the HTTP port (default 3000), and `CLIENT_ORIGIN` to the permitted browser origin. Example credentials are placeholders; URL-encode special characters in passwords. `.env` is ignored by Git.
+
+For an empty database:
 
 ```powershell
 npm run db:migrate
 npm start
 ```
 
-Use `npm run dev` for automatic restarts during development. Stop with Ctrl+C.
+Use `npm run dev` for automatic restarts. Stop with Ctrl+C. Installation generates Prisma Client; run `npm run db:generate` again after schema changes. Generation does not connect to the database.
 
-## Migrations
+## Prisma models and migrations
 
-`npm run db:migrate` applies numbered SQL files from `database/migrations` in filename order and records them in `schema_migrations`. A transaction and advisory lock prevent partial application and competing migration runs. Re-running the command skips recorded migrations. Add a new numbered migration for later changes; do not edit already applied migrations.
+`prisma/schema.prisma` defines Customer, Product, Order, and OrderItem. Camel-case client fields map to the existing SQL table and column names. Prices use Prisma Decimal, and foreign-key deletion rules match the original database. `src/db.js` creates Prisma Client with the PostgreSQL driver adapter and three-second connection/query timeouts.
 
-`database/schema.sql` is the original schema reference. Do not run it separately before migrations. If it was already applied to a development database, use a new empty database for this migration workflow rather than deleting existing data. The application does not run migrations automatically.
+`npm run db:migrate` runs `prisma migrate deploy`, applying committed migrations from `prisma/migrations` and tracking them in `_prisma_migrations`. Repeated runs skip completed migrations. The initial SQL migration wraps schema creation in a transaction and preserves all original CHECK constraints. Prisma schema syntax cannot represent these checks; preserve them in migration SQL when making future changes.
+
+For future schema changes, edit `prisma/schema.prisma`, run `npm run db:migrate:dev -- --name descriptive_name` against a disposable development database, review the generated SQL, then run `npm run db:generate`. The development command may require permission to create a shadow database. Use `npm run db:validate` to validate the schema. Do not edit applied migrations or use `db push` as a replacement for committed migrations.
+
+### Existing databases from the previous SQL runner
+
+Do not run the initial migration over existing tables. Back up the database and verify that its four business tables and constraints match `prisma/migrations/001_initial/migration.sql` (the same schema as the legacy `database/schema.sql`). If they match, mark the initial Prisma migration as already applied:
+
+```powershell
+npx prisma migrate resolve --applied 001_initial
+npm run db:migrate
+npm run db:generate
+```
+
+This baseline records migration history without recreating tables or deleting records. The old `schema_migrations` table may remain as historical bookkeeping. If the schema differs, reconcile those differences before baselining; do not use a reset on data you need. Legacy SQL files under `database/` are references only; the custom migration runner has been removed. The application never runs migrations automatically. See [Prisma baselining](https://www.prisma.io/docs/orm/prisma-migrate/workflows/baselining).
 
 ## Health check
 
@@ -40,21 +51,23 @@ Use `npm run dev` for automatic restarts during development. Stop with Ctrl+C.
 Invoke-RestMethod http://localhost:3000/health
 ```
 
-`GET /health` runs `SELECT 1` against PostgreSQL. It returns HTTP 200 with `{"status":"ok","database":"up"}`, or HTTP 503 with `{"status":"unavailable","database":"down"}` if the database query fails. Responses disable caching and omit internal error details. This checks connectivity, not whether migrations have been applied. Missing `DATABASE_URL` prevents startup; connection/query timeouts are three seconds each.
+`GET /health` executes a tagged Prisma `$queryRaw` query (`SELECT 1`). It returns HTTP 200 with `{"status":"ok","database":"up"}`, or HTTP 503 with `{"status":"unavailable","database":"down"}` if the query fails. Responses disable caching and omit internal details. This checks connectivity, not whether migrations have been applied. Missing `DATABASE_URL` prevents startup. Shutdown disconnects Prisma Client.
 
 ## Verification for 2 October
 
 ```powershell
-npm run test:today
+npm test
 ```
 
-To include real PostgreSQL verification, create a separate test database and set its connection string for the command:
+`npm run test:today` runs the same current test file. Tests use Node's built-in runner; Jest configuration remains a later task.
+
+To include real PostgreSQL verification, create a separate test database and set its connection string:
 
 ```powershell
 createdb -h localhost -U postgres backend_module_test
 $env:TEST_DATABASE_URL = 'postgres://postgres:YOUR_PASSWORD@localhost:5432/backend_module_test'
-npm run test:today
+npm test
 Remove-Item Env:TEST_DATABASE_URL
 ```
 
-The integration check creates a unique schema and removes only that schema afterward. It verifies first and repeated migrations, table creation, constraints, failed-migration rollback, and healthy responses. Without `TEST_DATABASE_URL`, it is explicitly skipped; database-failure responses and missing configuration are still tested. Today's checks use Node's built-in test runner; the planned Jest setup remains a later task.
+The integration check migrates a unique schema, verifies repeated deployment, Prisma model reads/writes, relations, decimal values, unique/check/foreign-key constraints, cascade deletion, transaction rollback, and a healthy response. A second integration check verifies that baselining the legacy schema preserves existing customer data. Each check removes only its generated schema afterward. Without `TEST_DATABASE_URL`, it explicitly skips the integration test; successful/failed health responses and missing configuration are still tested.
