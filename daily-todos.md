@@ -33,9 +33,9 @@ Each day follows `notes/example-plan.md`: three priorities, the main risk, and a
 
 ## 3 October 2026
 
-- [ ] Complete the ERD, endpoint access rules, and request/response examples before implementing business routes.
-- [ ] Add shared request validation and consistent error handling.
-- [ ] Configure Jest and verify health checks, unknown routes, and safe error responses.
+- [x] Complete the ERD, endpoint access rules, and request/response examples before implementing business routes.
+- [x] Add shared request validation and consistent error handling.
+- [x] Configure Jest and verify health checks, unknown routes, and safe error responses.
 
 **Risk:** Inconsistent responses make later endpoints harder to maintain.
 **Mitigation:** Establish shared conventions and test them before adding CRUD routes.

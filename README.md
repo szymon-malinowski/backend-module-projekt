@@ -1,6 +1,6 @@
 # Customer, Product, and Order REST API
 
-An individual Node.js/Express REST API backed by PostgreSQL and Prisma ORM 7. Current functionality includes Prisma migrations and a database-aware health check. Business endpoints remain planned in [API design](api-design.md); see the [project plan](project-plan.md) and [daily tasks](daily-todos.md).
+An individual Node.js/Express REST API backed by PostgreSQL and Prisma ORM 7. Current functionality includes Prisma migrations, a database-aware health check, shared request validation, and safe JSON error handling. Business endpoints remain planned in [API design](api-design.md); see the [project plan](project-plan.md) and [daily tasks](daily-todos.md).
 
 ## Local setup
 
@@ -53,13 +53,13 @@ Invoke-RestMethod http://localhost:3000/health
 
 `GET /health` executes a tagged Prisma `$queryRaw` query (`SELECT 1`). It returns HTTP 200 with `{"status":"ok","database":"up"}`, or HTTP 503 with `{"status":"unavailable","database":"down"}` if the query fails. Responses disable caching and omit internal details. This checks connectivity, not whether migrations have been applied. Missing `DATABASE_URL` prevents startup. Shutdown disconnects Prisma Client.
 
-## Verification for 2 October
+## Automated verification
 
 ```powershell
 npm test
 ```
 
-`npm run test:today` runs the same current test file. Tests use Node's built-in runner; Jest configuration remains a later task.
+`npm run test:today` runs the same Jest suite. Jest uses Node's VM modules flag for this ESM project; Node may print an experimental-feature warning. HTTP tests cover health success/failure, unknown routes and methods, malformed/oversized JSON, body/params/query validation, optional and unknown fields, and safe synchronous/asynchronous errors. Business endpoints are still planned. The [API design and ERD](api-design.md) document their contracts and access rules.
 
 To include real PostgreSQL verification, create a separate test database and set its connection string:
 
@@ -70,4 +70,4 @@ npm test
 Remove-Item Env:TEST_DATABASE_URL
 ```
 
-The integration check migrates a unique schema, verifies repeated deployment, Prisma model reads/writes, relations, decimal values, unique/check/foreign-key constraints, cascade deletion, transaction rollback, and a healthy response. A second integration check verifies that baselining the legacy schema preserves existing customer data. Each check removes only its generated schema afterward. Without `TEST_DATABASE_URL`, it explicitly skips the integration test; successful/failed health responses and missing configuration are still tested.
+The integration check migrates a unique schema, verifies repeated deployment, Prisma model reads/writes, relations, decimal values, unique/check/foreign-key constraints, cascade deletion, transaction rollback, and a healthy response. A second integration check verifies that baselining the legacy schema preserves existing customer data. Each check removes only its generated schema afterward. Without `TEST_DATABASE_URL`, Jest explicitly skips both database integration tests; successful/failed health responses and missing configuration are still tested.

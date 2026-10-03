@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import { test } from '@jest/globals';
 import { execFileSync } from 'node:child_process';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
@@ -36,9 +36,7 @@ test('database configuration is required', () => {
   assert.throws(() => createPrisma(''), /DATABASE_URL is required/);
 });
 
-test('real Prisma migrations, models, constraints, transactions, and health', {
-  skip: !process.env.TEST_DATABASE_URL && 'Set TEST_DATABASE_URL to an isolated PostgreSQL database',
-}, async () => {
+(process.env.TEST_DATABASE_URL ? test : test.skip)('real Prisma migrations, models, constraints, transactions, and health', async () => {
   const schema = `test_${process.pid}_${Date.now()}`;
   const url = new URL(process.env.TEST_DATABASE_URL);
   url.searchParams.set('schema', schema);
@@ -84,9 +82,7 @@ test('real Prisma migrations, models, constraints, transactions, and health', {
   }
 });
 
-test('baselining the legacy schema preserves existing data', {
-  skip: !process.env.TEST_DATABASE_URL && 'Set TEST_DATABASE_URL to an isolated PostgreSQL database',
-}, async () => {
+(process.env.TEST_DATABASE_URL ? test : test.skip)('baselining the legacy schema preserves existing data', async () => {
   const { readFile } = await import('node:fs/promises');
   const schema = `baseline_${process.pid}_${Date.now()}`;
   const url = new URL(process.env.TEST_DATABASE_URL);
