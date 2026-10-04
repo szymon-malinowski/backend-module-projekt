@@ -42,9 +42,9 @@ Each day follows `notes/example-plan.md`: three priorities, the main risk, and a
 
 ## 4 October 2026
 
-- [ ] Implement account storage and customer registration with password hashing.
-- [ ] Implement login and token verification.
-- [ ] Test registration, duplicate accounts, invalid credentials, and invalid or expired tokens.
+- [x] Implement account storage and customer registration with password hashing.
+- [x] Implement login and token verification.
+- [x] Test registration, duplicate accounts, invalid credentials, and invalid or expired tokens.
 
 **Risk:** Authentication exposes sensitive data or accepts invalid credentials.
 **Mitigation:** Validate input, keep secrets in environment configuration, and exclude password hashes from responses.

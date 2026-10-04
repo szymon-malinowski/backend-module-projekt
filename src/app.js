@@ -1,8 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import { notFound, errorHandler } from './middleware/errors.js';
+import { authRoutes } from './auth/routes.js';
+import { createTokens } from './auth/tokens.js';
 
-export function createApp(database) {
+export function createApp(database, { tokens = createTokens() } = {}) {
   const app = express();
   app.use(cors({ origin: process.env.CLIENT_ORIGIN || false }));
   app.use(express.json({ limit: '100kb' }));
@@ -17,6 +19,7 @@ export function createApp(database) {
     }
   });
 
+  app.use('/auth', authRoutes(database, tokens));
   app.use(notFound);
   app.use(errorHandler);
   return app;

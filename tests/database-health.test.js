@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
-import { test } from '@jest/globals';
+import { jest, test } from '@jest/globals';
 import { execFileSync } from 'node:child_process';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
 import { createPrisma } from '../src/db.js';
 
 const cli = 'node_modules/prisma/build/index.js';
+// These integration tests launch several Prisma CLI processes; cold Windows starts can exceed one minute.
+jest.setTimeout(180000);
 function migrate(url) {
   return execFileSync(process.execPath, [cli, 'migrate', 'deploy'], {
     env: { ...process.env, DATABASE_URL: url }, encoding: 'utf8',
@@ -102,9 +104,60 @@ test('database configuration is required', () => {
     execFileSync(process.execPath, [cli, 'migrate', 'resolve', '--applied', '001_initial'], {
       env: { ...process.env, DATABASE_URL: url.href }, encoding: 'utf8',
     });
+    // Baseline only the legacy migration, then apply the new account migration.
+    migrate(url.href);
     assert.match(migrate(url.href), /No pending migrations/);
     const customer = await prisma.customer.findUnique({ where: { email: 'existing@example.com' } });
     assert.equal(customer.name, 'Existing customer');
+  } finally {
+    await prisma.$disconnect();
+    try {
+      await admin.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
+    } finally {
+      await admin.$disconnect();
+    }
+  }
+});
+
+(process.env.TEST_DATABASE_URL ? test : test.skip)('real registration, account constraints, duplicate races and transaction rollback', async () => {
+  const schema = `auth_${process.pid}_${Date.now()}`;
+  const url = new URL(process.env.TEST_DATABASE_URL);
+  url.searchParams.set('schema', schema);
+  const prisma = createPrisma(url.href);
+  const admin = createPrisma(process.env.TEST_DATABASE_URL);
+  try {
+    migrate(url.href);
+    const app = createApp(prisma);
+    const body = { name: ' Ada ', email: ' ADA@Example.com ', password: 'integration test password' };
+    const results = await Promise.all([
+      request(app).post('/auth/register').send(body),
+      request(app).post('/auth/register').send(body),
+    ]);
+    assert.deepEqual(results.map(result => result.status).sort(), [201, 409]);
+    assert.equal(await prisma.customer.count(), 1);
+    assert.equal(await prisma.account.count(), 1);
+    const account = await prisma.account.findUnique({ where: { email: 'ada@example.com' } });
+    assert.equal(account.role, 'customer');
+    assert.notEqual(account.passwordHash, body.password);
+    const response = results.find(result => result.status === 201);
+    assert.equal(response.body.data.name, 'Ada');
+    assert.equal(JSON.stringify(response.body).includes('password'), false);
+    await request(app).post('/auth/login').send({ email: body.email, password: body.password }).expect(200);
+    for (const data of [
+      { email: 'role@example.com', role: 'admin' },
+      { email: 'orphan@example.com', role: 'customer' },
+      { email: 'UPPER@example.com', role: 'staff' },
+      { email: 'fk@example.com', role: 'customer', customerId: 2147483647 },
+      { email: 'duplicate-link@example.com', role: 'customer', customerId: account.customerId },
+    ]) {
+      await assert.rejects(prisma.account.create({ data: { passwordHash: account.passwordHash, ...data } }));
+    }
+    // Existing staff email collides only on the second write: customer insert must roll back.
+    await prisma.account.create({ data: { email: 'staff@example.com', role: 'staff', passwordHash: account.passwordHash } });
+    await request(app).post('/auth/register').send({ ...body, email: 'staff@example.com' }).expect(409);
+    assert.equal(await prisma.customer.count(), 1);
+    await prisma.customer.delete({ where: { id: account.customerId } });
+    assert.equal(await prisma.account.findUnique({ where: { id: account.id } }), null);
   } finally {
     await prisma.$disconnect();
     try {

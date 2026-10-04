@@ -2,12 +2,21 @@
 
 ## Implementation status
 
-As of 3 October 2026, only `GET /health` is implemented. Shared validation and JSON error middleware are ready for business routes. The contracts below guide the remaining daily work.
+As of 4 October 2026, `GET /health`, `POST /auth/register`, and `POST /auth/login` are implemented. Token verification middleware is ready for future protected routes. Shared validation and JSON error middleware are ready for business routes. The contracts below guide the remaining daily work.
 
 ## Entity relationship diagram
 
 ```mermaid
 erDiagram
+    CUSTOMER |o--o| ACCOUNT : authenticates
+    ACCOUNT {
+        int id PK
+        varchar email UK
+        text password_hash
+        varchar role
+        int customer_id FK,UK
+        timestamptz created_at
+    }
     CUSTOMER ||--o{ ORDER : places
     ORDER ||--|{ ORDER_ITEM : contains
     PRODUCT ||--o{ ORDER_ITEM : referenced_by
@@ -40,15 +49,15 @@ erDiagram
     }
 ```
 
-The four entities above match the current Prisma schema. An order must contain at least one item at the API level; foreign keys alone do not enforce that minimum. Email is unique; prices and stock are nonnegative; quantity is positive. Money uses `NUMERIC(12,2)` and JSON decimal strings. Timestamps use UTC ISO 8601; JSON fields use camelCase.
+The five entities above match the current Prisma schema. An order must contain at least one item at the API level; foreign keys alone do not enforce that minimum. Email is unique; prices and stock are nonnegative; quantity is positive. Money uses `NUMERIC(12,2)` and JSON decimal strings. Timestamps use UTC ISO 8601; JSON fields use camelCase.
 
 Current database deletion rules cascade customer deletion to orders and order deletion to items; referenced products cannot be deleted. Planned API rules preserve order history: customer deletion with existing orders returns 409, and there is no order-delete endpoint. The customer route must enforce this transactionally despite the existing cascade (or introduce a reviewed restrictive migration).
 
-On 4 October, add a separate Account model with unique email, passwordHash, role (`customer` or `staff`), and an optional unique customerId foreign key. Customer accounts require a linked customer; staff may be unlinked. Registration creates both records transactionally. Password hashes never appear in responses. Customer email changes must synchronize the account email transactionally. Customer deletion must also remove its linked login account.
+Implemented on 4 October: a separate Account model with unique email, passwordHash, role (`customer` or `staff`), and an optional unique customerId foreign key. Customer accounts require a linked customer; staff may be unlinked. Registration creates both records transactionally. Password hashes never appear in responses. Customer email changes must synchronize the account email transactionally. Customer deletion must also remove its linked login account.
 
 ## Authentication and access rules
 
-Planned authentication uses signed, expiring bearer tokens in `Authorization: Bearer <token>`. Verify signature and expiry, then load the account and permissions from storage. Missing, invalid, or expired credentials return 401. Staff accounts are provisioned administratively; public requests cannot assign roles. Authentication implementation and configuration belong to 4 October.
+Implemented authentication uses signed, expiring HS256 JWT bearer tokens in `Authorization: Bearer <token>`. Verify signature and expiry, then load the account and permissions from storage. Missing, invalid, or expired credentials return 401. Staff accounts are provisioned administratively; public requests cannot assign roles. Tokens expire after one hour and require JWT_SECRET (at least 32 bytes), the fixed issuer backend-module-rest-api and audience backend-module-clients. See README for setup.
 
 | Method | Path | Access and purpose | Success |
 |---|---|---|---|
@@ -74,7 +83,7 @@ Return 404 for another customer's customer/order detail to avoid revealing its e
 
 Planned for 9 October: lists accept `page` (default 1) and `limit` (default 20, maximum 100), return stable ascending ID order and `{data: [...], pagination: {page, limit, total}}`. Product search uses `search` (1–160 characters); orders accept `status` from the allowed enum. Reject malformed or repeated query parameters. Apply ownership filtering before pagination and counting.
 
-## Request and response examples (planned)
+## Request and response examples (accounts implemented; business routes planned)
 
 All write bodies use `Content-Type: application/json`. Resource creation returns a Location header; 204 responses have no body. Single-resource responses use `data`; authentication uses the explicit envelopes below.
 
@@ -141,7 +150,7 @@ Errors use a top-level `error` string; validation additionally includes field de
 |---|---|---|
 | 400 | `Validation failed` | Invalid request fields |
 | 400 | `Invalid JSON body` | JSON parsing failed |
-| 401 | `Authentication required` | Missing/invalid/expired token (planned) |
+| 401 | `Authentication required` | Missing/invalid/expired token |
 | 403 | `Forbidden` | Role cannot perform action (planned) |
 | 404 | `Route not found` | No matching route/method |
 | 404 | `Resource not found` | Missing or hidden resource (planned) |
