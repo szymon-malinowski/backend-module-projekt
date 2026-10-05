@@ -3,6 +3,7 @@ import cors from 'cors';
 import { notFound, errorHandler } from './middleware/errors.js';
 import { authRoutes } from './auth/routes.js';
 import { createTokens } from './auth/tokens.js';
+import { customerRoutes } from './customers/routes.js';
 
 export function createApp(database, { tokens = createTokens() } = {}) {
   const app = express();
@@ -20,6 +21,7 @@ export function createApp(database, { tokens = createTokens() } = {}) {
   });
 
   app.use('/auth', authRoutes(database, tokens));
+  app.use('/customers', customerRoutes(database, tokens));
   app.use(notFound);
   app.use(errorHandler);
   return app;

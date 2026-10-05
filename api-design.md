@@ -2,7 +2,7 @@
 
 ## Implementation status
 
-As of 4 October 2026, `GET /health`, `POST /auth/register`, and `POST /auth/login` are implemented. Token verification middleware is ready for future protected routes. Shared validation and JSON error middleware are ready for business routes. The contracts below guide the remaining daily work.
+As of 5 October 2026, health, authentication, and customer CRUD routes are implemented. Customer routes enforce staff permissions, ownership, normalized profile updates, and order-aware deletion. Product and order routes remain planned. Shared validation and JSON error middleware are used by all implemented routes.
 
 ## Entity relationship diagram
 

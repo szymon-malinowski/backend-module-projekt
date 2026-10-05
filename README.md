@@ -1,6 +1,6 @@
 # Customer, Product, and Order REST API
 
-An individual Node.js/Express REST API backed by PostgreSQL and Prisma ORM 7. Current functionality includes Prisma migrations, a database-aware health check, shared request validation, and safe JSON error handling. Registration and login are implemented; customer, product, and order endpoints remain planned in [API design](api-design.md); see the [project plan](project-plan.md) and [daily tasks](daily-todos.md).
+An individual Node.js/Express REST API backed by PostgreSQL and Prisma ORM 7. Current functionality includes Prisma migrations, a database-aware health check, shared request validation, safe JSON error handling, authentication, and customer CRUD with ownership and staff permissions. Product and order endpoints remain planned in [API design](api-design.md); see the [project plan](project-plan.md) and [daily tasks](daily-todos.md).
 
 ## Local setup
 

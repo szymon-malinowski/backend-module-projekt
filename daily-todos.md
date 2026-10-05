@@ -51,9 +51,9 @@ Each day follows `notes/example-plan.md`: three priorities, the main risk, and a
 
 ## 5 October 2026
 
-- [ ] Implement customer list, detail, create, update, and delete endpoints.
-- [ ] Enforce staff and customer ownership permissions, including protection against role escalation.
-- [ ] Test customer CRUD, validation, access denial, and deletion constraints.
+- [x] Implement customer list, detail, create, update, and delete endpoints.
+- [x] Enforce staff and customer ownership permissions, including protection against role escalation.
+- [x] Test customer CRUD, validation, access denial, and deletion constraints.
 
 **Risk:** A customer can access or modify another customer's data.
 **Mitigation:** Enforce permissions on every customer route and test with separate user identities.
