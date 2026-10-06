@@ -60,9 +60,9 @@ Each day follows `notes/example-plan.md`: three priorities, the main risk, and a
 
 ## 6 October 2026
 
-- [ ] Implement product list, detail, create, update, and delete endpoints.
-- [ ] Validate prices and stock, restrict writes to staff, and preserve products referenced by order history.
-- [ ] Test product CRUD, invalid input, forbidden writes, and deletion conflicts.
+- [x] Implement product list, detail, create, update, and delete endpoints.
+- [x] Validate prices and stock, restrict writes to staff, and preserve products referenced by order history.
+- [x] Test product CRUD, invalid input, forbidden writes, and deletion conflicts.
 
 **Risk:** Product changes break existing order references.
 **Mitigation:** Enforce foreign-key constraints and return documented conflicts for disallowed deletion.

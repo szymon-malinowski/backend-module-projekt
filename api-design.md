@@ -2,7 +2,7 @@
 
 ## Implementation status
 
-As of 5 October 2026, health, authentication, and customer CRUD routes are implemented. Customer routes enforce staff permissions, ownership, normalized profile updates, and order-aware deletion. Product and order routes remain planned. Shared validation and JSON error middleware are used by all implemented routes.
+As of 6 October 2026, health, authentication, customer CRUD, and product CRUD routes are implemented. Product routes keep reads public, restrict writes to staff, validate money and stock, and reject deletion of products referenced by orders. Order routes remain planned. Shared validation and JSON error middleware are used by all implemented routes.
 
 ## Entity relationship diagram
 
