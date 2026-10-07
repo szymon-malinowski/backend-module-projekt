@@ -69,9 +69,9 @@ Each day follows `notes/example-plan.md`: three priorities, the main risk, and a
 
 ## 7 October 2026
 
-- [ ] Implement order creation with related order items in a database transaction.
-- [ ] Calculate totals from stored product prices and record the purchased unit prices.
-- [ ] Test successful orders, invalid quantities, insufficient stock, and transaction rollback.
+- [x] Implement order creation with related order items in a database transaction.
+- [x] Calculate totals from stored product prices and record the purchased unit prices.
+- [x] Test successful orders, invalid quantities, insufficient stock, and transaction rollback.
 
 **Risk:** Partial writes or concurrent requests produce incorrect stock and orders.
 **Mitigation:** Use atomic stock updates or row locks within the transaction and test competing purchases.
