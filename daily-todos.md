@@ -78,9 +78,9 @@ Each day follows `notes/example-plan.md`: three priorities, the main risk, and a
 
 ## 8 October 2026
 
-- [ ] Implement order list and detail endpoints with ownership checks.
-- [ ] Implement staff-only status updates with documented allowed transitions.
-- [ ] Test order visibility, missing orders, forbidden updates, and invalid status transitions.
+- [x] Implement order list and detail endpoints with ownership checks.
+- [x] Implement staff-only status updates with documented allowed transitions.
+- [x] Test order visibility, missing orders, forbidden updates, and invalid status transitions.
 
 **Risk:** Order data leaks or invalid transitions corrupt the order lifecycle.
 **Mitigation:** Filter access by identity and validate each transition against the current status.

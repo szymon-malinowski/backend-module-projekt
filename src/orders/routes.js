@@ -23,6 +23,18 @@ const publicOrder = order => ({
 export function orderRoutes(database, tokens) {
   const router = Router();
   router.use(authenticate(database, tokens));
+  const visible = req => req.auth.role === 'staff' ? {} : { customerId: req.auth.customerId };
+  const format = order => ({ data: publicOrder(order) });
+
+  router.get('/', asyncHandler(async (req, res) => {
+    const orders = await database.order.findMany({ where: visible(req), orderBy: { id: 'asc' }, include: { items: true } });
+    res.json({ data: orders.map(publicOrder) });
+  }));
+  router.get('/:id', validate('params', { id: value => /^\d+$/.test(String(value)) && Number(value) > 0 ? undefined : 'ID must be a positive integer' }), asyncHandler(async (req, res) => {
+    const order = await database.order.findFirst({ where: { id: Number(req.params.id), ...visible(req) }, include: { items: true } });
+    if (!order) throw new ApiError(404, 'Resource not found');
+    res.json(format(order));
+  }));
   router.post('/', validate('body', { items: value => {
     const listError = itemList(value); if (listError) return listError;
     const errors = value.map(itemShape).filter(Boolean); return errors.length ? errors[0] : undefined;
@@ -52,6 +64,15 @@ export function orderRoutes(database, tokens) {
       if (error.code === 'P2003') throw new ApiError(404, 'Product not found');
       throw error;
     }
+  }));
+  router.patch('/:id/status', validate('params', { id: value => /^\d+$/.test(String(value)) && Number(value) > 0 ? undefined : 'ID must be a positive integer' }), validate('body', { status: value => ['paid', 'shipped', 'cancelled'].includes(value) ? undefined : 'Invalid order status' }), asyncHandler(async (req, res) => {
+    if (req.auth.role !== 'staff') throw new ApiError(403, 'Forbidden');
+    const order = await database.order.findUnique({ where: { id: Number(req.params.id) }, include: { items: true } });
+    if (!order) throw new ApiError(404, 'Resource not found');
+    const allowed = { pending: ['paid', 'cancelled'], paid: ['shipped', 'cancelled'], shipped: [], cancelled: [] };
+    if (!allowed[order.status]?.includes(req.body.status)) throw new ApiError(409, 'Invalid status transition');
+    const updated = await database.order.update({ where: { id: order.id }, data: { status: req.body.status }, include: { items: true } });
+    res.json(format(updated));
   }));
   return router;
 }
