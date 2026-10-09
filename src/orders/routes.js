@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '../auth/tokens.js';
 import { validate } from '../middleware/validate.js';
 import { ApiError, asyncHandler } from '../middleware/errors.js';
+import { pagination, envelope } from '../middleware/pagination.js';
 
 const itemList = value => Array.isArray(value) && value.length >= 1 && value.length <= 100 ? undefined : 'Items must contain 1–100 entries';
 const itemShape = value => value && typeof value === 'object' && !Array.isArray(value)
@@ -27,8 +28,12 @@ export function orderRoutes(database, tokens) {
   const format = order => ({ data: publicOrder(order) });
 
   router.get('/', asyncHandler(async (req, res) => {
-    const orders = await database.order.findMany({ where: visible(req), orderBy: { id: 'asc' }, include: { items: true } });
-    res.json({ data: orders.map(publicOrder) });
+    const { page, limit, skip } = pagination(req.query, ['status']);
+    const status = req.query.status;
+    if (status !== undefined && !['pending', 'paid', 'shipped', 'cancelled'].includes(status)) throw new ApiError(400, 'Validation failed', [{ field: 'status', message: 'Invalid order status' }]);
+    const where = { ...visible(req), ...(status ? { status } : {}) };
+    const [orders, total] = await Promise.all([database.order.findMany({ where, orderBy: { id: 'asc' }, skip, take: limit, include: { items: true } }), database.order.count({ where })]);
+    res.json(envelope(orders.map(publicOrder), page, limit, total));
   }));
   router.get('/:id', validate('params', { id: value => /^\d+$/.test(String(value)) && Number(value) > 0 ? undefined : 'ID must be a positive integer' }), asyncHandler(async (req, res) => {
     const order = await database.order.findFirst({ where: { id: Number(req.params.id), ...visible(req) }, include: { items: true } });

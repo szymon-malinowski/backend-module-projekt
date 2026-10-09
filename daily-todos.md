@@ -87,9 +87,9 @@ Each day follows `notes/example-plan.md`: three priorities, the main risk, and a
 
 ## 9 October 2026
 
-- [ ] Add bounded pagination to customer, product, and order lists.
-- [ ] Add product search and order-status filtering.
-- [ ] Test query validation, empty results, stable ordering, and pagination limits.
+- [x] Add bounded pagination to customer, product, and order lists.
+- [x] Add product search and order-status filtering.
+- [x] Test query validation, empty results, stable ordering, and pagination limits.
 
 **Risk:** Unbounded or unsafe queries degrade performance and expose data.
 **Mitigation:** Use parameterized queries, allowlisted query options, and a maximum page size.

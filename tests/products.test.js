@@ -14,9 +14,9 @@ function appFor(database, auth = { id: 1, role: 'staff', customerId: null }) {
 const bearer = { Authorization: 'Bearer token' };
 
 test('product reads are public and stable ordered', async () => {
-  const database = { product: { findMany: jest.fn().mockResolvedValue([product(2), product(1)]) } };
+  const database = { product: { findMany: jest.fn().mockResolvedValue([product(2), product(1)]), count: jest.fn().mockResolvedValue(2) } };
   const app = appFor(database, { id: 1, role: 'customer', customerId: 1 });
-  await request(app).get('/products').expect(200, { data: [product(2), product(1)] });
+  await request(app).get('/products').expect(200, { data: [product(2), product(1)], pagination: { page: 1, limit: 20, total: 2 } });
 });
 
 test('staff can create and update products with normalized values', async () => {
@@ -67,6 +67,6 @@ test('product detail and deletion handle missing products, references, and safe 
 });
 
 test('unexpected product database errors are hidden', async () => {
-  const database = { product: { findMany: jest.fn().mockRejectedValue(new Error('secret')) } };
+  const database = { product: { findMany: jest.fn().mockRejectedValue(new Error('secret')), count: jest.fn().mockResolvedValue(0) } };
   await request(appFor(database)).get('/products').expect(500, { error: 'Internal server error' });
 });

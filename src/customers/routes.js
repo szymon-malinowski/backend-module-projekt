@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '../auth/tokens.js';
 import { validate } from '../middleware/validate.js';
 import { ApiError, asyncHandler } from '../middleware/errors.js';
+import { pagination, envelope } from '../middleware/pagination.js';
 
 const id = value => /^\d+$/.test(String(value)) && Number(value) > 0 && Number(value) <= 2147483647
   ? undefined : 'ID must be a positive integer';
@@ -25,9 +26,10 @@ const ownOrStaff = (req, res, next) => {
 export function customerRoutes(database, tokens) {
   const router = Router();
   router.use(authenticate(database, tokens));
-  router.get('/', requireRole('staff'), validate('query', {}), asyncHandler(async (req, res) => {
-    const customers = await database.customer.findMany({ orderBy: { id: 'asc' } });
-    res.json({ data: customers.map(publicCustomer) });
+  router.get('/', requireRole('staff'), asyncHandler(async (req, res) => {
+    const { page, limit, skip } = pagination(req.query);
+    const [customers, total] = await Promise.all([database.customer.findMany({ orderBy: { id: 'asc' }, skip, take: limit }), database.customer.count()]);
+    res.json(envelope(customers.map(publicCustomer), page, limit, total));
   }));
   router.post('/', requireRole('staff'), validate('body', { name, email }), asyncHandler(async (req, res) => {
     try {

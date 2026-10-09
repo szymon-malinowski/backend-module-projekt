@@ -18,12 +18,12 @@ const auth = { Authorization: 'Bearer token' };
 test('staff can list and create customers with normalized public responses', async () => {
   const database = {
     customer: {
-      findMany: jest.fn().mockResolvedValue([customer(2), { ...customer(1), email: 'one@example.com' }]),
+      findMany: jest.fn().mockResolvedValue([customer(2), { ...customer(1), email: 'one@example.com' }]), count: jest.fn().mockResolvedValue(2),
       create: jest.fn().mockResolvedValue({ ...customer(3), name: 'Ada', email: 'ada@example.com' }),
     }, account: { findUnique: jest.fn() },
   };
   const app = appFor(database);
-  await request(app).get('/customers').set(auth).expect(200, { data: [customer(2), { ...customer(1), email: 'one@example.com' }] });
+  await request(app).get('/customers').set(auth).expect(200, { data: [customer(2), { ...customer(1), email: 'one@example.com' }], pagination: { page: 1, limit: 20, total: 2 } });
   await request(app).post('/customers').set(auth).send({ name: ' Ada ', email: ' ADA@Example.com ' }).expect(201, { data: { ...customer(3), name: 'Ada', email: 'ada@example.com' } });
   expect(database.customer.create).toHaveBeenCalledWith({ data: { name: 'Ada', email: 'ada@example.com' } });
 });
@@ -79,6 +79,6 @@ test('staff deletion checks existence and order constraints before deleting', as
 });
 
 test('database failures return safe errors', async () => {
-  const database = { customer: { findMany: jest.fn().mockRejectedValue(new Error('secret')) }, account: { findUnique: jest.fn() } };
+  const database = { customer: { findMany: jest.fn().mockRejectedValue(new Error('secret')), count: jest.fn().mockResolvedValue(0) }, account: { findUnique: jest.fn() } };
   await request(appFor(database)).get('/customers').set(auth).expect(500, { error: 'Internal server error' });
 });

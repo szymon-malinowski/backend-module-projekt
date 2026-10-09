@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '../auth/tokens.js';
 import { validate } from '../middleware/validate.js';
 import { ApiError, asyncHandler } from '../middleware/errors.js';
+import { pagination, envelope } from '../middleware/pagination.js';
 
 const id = value => /^\d+$/.test(String(value)) && Number(value) > 0 && Number(value) <= 2147483647 ? undefined : 'ID must be a positive integer';
 const name = value => typeof value === 'string' && value.trim().length > 0 && value.trim().length <= 160 ? undefined : 'Name must contain 1–160 characters';
@@ -13,9 +14,13 @@ const staffOnly = (req, res, next) => req.auth.role === 'staff' ? next() : next(
 
 export function productRoutes(database, tokens) {
   const router = Router();
-  router.get('/', validate('query', {}), asyncHandler(async (req, res) => {
-    const products = await database.product.findMany({ orderBy: { id: 'asc' } });
-    res.json({ data: products.map(publicProduct) });
+  router.get('/', asyncHandler(async (req, res) => {
+    const { page, limit, skip } = pagination(req.query, ['search']);
+    const search = req.query.search;
+    if (search !== undefined && (typeof search !== 'string' || !search.trim() || search.length > 160 || Object.keys(req.query).some(k => !['page', 'limit', 'search'].includes(k)))) throw new ApiError(400, 'Validation failed', [{ field: 'search', message: 'Search must contain 1–160 characters' }]);
+    const where = search ? { OR: [{ name: { contains: search.trim(), mode: 'insensitive' } }, { description: { contains: search.trim(), mode: 'insensitive' } }] } : {};
+    const [products, total] = await Promise.all([database.product.findMany({ where, orderBy: { id: 'asc' }, skip, take: limit }), database.product.count({ where })]);
+    res.json(envelope(products.map(publicProduct), page, limit, total));
   }));
   router.get('/:id', validate('params', { id }), asyncHandler(async (req, res) => {
     const product = await database.product.findUnique({ where: { id: Number(req.params.id) } });
