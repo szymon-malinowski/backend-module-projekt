@@ -2,7 +2,7 @@
 
 ## Implementation status
 
-As of 9 October 2026, health, authentication, customer CRUD, product CRUD, transactional order creation, order listing/detail/status, pagination, search, and status filtering are implemented. Shared validation and JSON error middleware are used by all routes.
+As of 10 October 2026, health, authentication, customer CRUD, product CRUD, transactional order creation, order listing/detail/status, pagination, search, status filtering, explicit CORS, and authentication rate limiting are implemented. Shared validation and JSON error middleware are used by all routes.
 
 ## Entity relationship diagram
 

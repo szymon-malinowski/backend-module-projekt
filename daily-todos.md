@@ -96,9 +96,9 @@ Each day follows `notes/example-plan.md`: three priorities, the main risk, and a
 
 ## 10 October 2026
 
-- [ ] Configure CORS for explicitly approved client origins.
-- [ ] Add rate limiting for authentication and other sensitive routes.
-- [ ] Review security settings and test CORS, rate limits, and errors for information leaks.
+- [x] Configure CORS for explicitly approved client origins.
+- [x] Add rate limiting for authentication and other sensitive routes.
+- [x] Review security settings and test CORS, rate limits, and errors for information leaks.
 
 **Risk:** Development defaults leave the deployed API exposed.
 **Mitigation:** Configure origins and secrets per environment and document HTTPS requirements.
