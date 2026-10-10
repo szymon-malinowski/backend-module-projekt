@@ -105,9 +105,9 @@ Each day follows `notes/example-plan.md`: three priorities, the main risk, and a
 
 ## 11 October 2026
 
-- [ ] Run integration tests against an isolated PostgreSQL test database.
-- [ ] Fill gaps in successful requests, invalid input, ownership, and authorization coverage.
-- [ ] Fix discovered defects and verify migrations from an empty database.
+- [x] Run integration tests against an isolated PostgreSQL test database.
+- [x] Fill gaps in successful requests, invalid input, ownership, and authorization coverage.
+- [x] Fix discovered defects and verify migrations from an empty database.
 
 **Risk:** Mocked dependencies hide real database failures.
 **Mitigation:** Exercise real constraints and transactions with repeatable fixtures isolated from development data.
