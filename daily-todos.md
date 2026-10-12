@@ -114,9 +114,9 @@ Each day follows `notes/example-plan.md`: three priorities, the main risk, and a
 
 ## 12 October 2026
 
-- [ ] Complete README installation, configuration, migration, run, and test instructions.
-- [ ] Complete API examples, error cases, role rules, and links to the plan and ERD.
-- [ ] Follow the setup instructions from a clean environment and correct any gaps.
+- [x] Complete README installation, configuration, migration, run, and test instructions.
+- [x] Complete API examples, error cases, role rules, and links to the plan and ERD.
+- [x] Follow the setup instructions from a clean environment and correct any gaps.
 
 **Risk:** Another developer cannot reproduce the setup.
 **Mitigation:** Verify every documented command and provide placeholder configuration without secrets.

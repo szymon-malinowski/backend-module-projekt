@@ -59,7 +59,7 @@ Invoke-RestMethod http://localhost:3000/health
 npm test
 ```
 
-`npm run test:today` runs the same Jest suite. Jest uses Node's VM modules flag for this ESM project; Node may print an experimental-feature warning. HTTP tests cover health success/failure, unknown routes and methods, malformed/oversized JSON, body/params/query validation, optional and unknown fields, and safe synchronous/asynchronous errors. Registration and login are also tested; customer, product, and order routes are still planned. The [API design and ERD](api-design.md) document their contracts and access rules.
+`npm run test:today` runs the same Jest suite. Jest uses Node's VM modules flag for this ESM project; Node may print an experimental-feature warning. HTTP tests cover health success/failure, unknown routes and methods, malformed/oversized JSON, body/params/query validation, pagination, CORS, rate limiting, authentication, customer, product, and order workflows. The [API design and ERD](api-design.md) document their contracts and access rules.
 
 To include real PostgreSQL verification, create a separate test database and set its connection string:
 
@@ -92,7 +92,7 @@ $login = Invoke-RestMethod -Method Post http://localhost:3000/auth/login -Conten
 $headers = @{ Authorization = "Bearer $($login.accessToken)" }
 ```
 
-Registration returns 201 with a customer object and a Location header; the referenced customer endpoint is scheduled for 5 October. Login returns `accessToken`, `tokenType: Bearer`, and `expiresIn: 3600`. Invalid fields return 400, duplicate emails 409, and incorrect credentials 401. Email is trimmed/lowercased; passwords are preserved exactly. Public registration always creates the customer role and rejects role/customerId overrides. Both endpoints disable response caching.
+Registration returns 201 with a customer object and a Location header. Login returns `accessToken`, `tokenType: Bearer`, and `expiresIn: 3600`. Invalid fields return 400, duplicate emails 409, and incorrect credentials 401. Email is trimmed/lowercased; passwords are preserved exactly. Public registration always creates the customer role and rejects role/customerId overrides. Both endpoints disable response caching.
 
 Passwords use Node's asynchronous scrypt with a random 16-byte salt, N=131072, r=8, p=1, and timing-safe comparison. Unknown-email login performs the same password derivation. Tokens use jsonwebtoken HS256 with a fixed issuer and audience, a one-hour expiry, and an account ID subject. The reusable `authenticate(database, tokens)` middleware verifies tokens and loads current account permissions; it is tested through a test-only route, ready for future protected business endpoints. There is no public token-verification endpoint, refresh flow, or logout/revocation list. Deleting an account invalidates its tokens on their next use; rotating JWT_SECRET invalidates all tokens. Staff accounts are not publicly registered.
 
@@ -100,4 +100,4 @@ The Account model adds unique normalized email, password hash, role, and an opti
 
 Authentication tests cover hashing, validation, normalization, duplicate errors, login, invalid/expired/wrong-purpose tokens, current permissions and deleted accounts. With TEST_DATABASE_URL, a third integration test verifies concurrent registration, account constraints, rollback after an account insert conflict, login against persisted hashes, and account cascade deletion. Tests use generated schemas and remove only those schemas.
 
-Rate limiting remains scheduled for 10 October; deployment and HTTPS configuration remain later tasks. Password-hashing and token-library references: [Node crypto](https://nodejs.org/api/crypto.html#cryptoscryptpassword-salt-keylen-options-callback), [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken).
+Authentication requests are limited to 10 per IP per 15-minute process window and return `429` with `Retry-After` when exceeded. CORS allows only `CLIENT_ORIGIN`; requests without an Origin header remain supported for command-line clients. The process-local limiter should use a shared store such as Redis when deploying multiple instances. Deployment and HTTPS configuration remain later tasks. Password-hashing and token-library references: [Node crypto](https://nodejs.org/api/crypto.html#cryptoscryptpassword-salt-keylen-options-callback), [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken).
