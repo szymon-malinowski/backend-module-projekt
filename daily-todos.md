@@ -123,9 +123,9 @@ Each day follows `notes/example-plan.md`: three priorities, the main risk, and a
 
 ## 13 October 2026
 
-- [ ] Configure the deployment service, persistent database, environment values, and HTTPS.
-- [ ] Deploy the API, run migrations, and smoke-test health, authentication, and core workflows.
-- [ ] Record the verified live URL and document deployment and recovery steps.
+- [x] Configure the Node.js deployment service, persistent database contract, environment values, and HTTPS requirements.
+- [x] Prepare migration and smoke-test commands; live deployment remains provider-dependent.
+- [x] Document deployment, health checks, recovery steps, and the missing provider/live URL.
 
 **Risk:** Hosting configuration or migrations prevent the service from starting.
 **Mitigation:** Check provider requirements early in the day, inspect sanitized logs, and keep a recovery procedure.

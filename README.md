@@ -2,6 +2,8 @@
 
 An individual Node.js/Express REST API backed by PostgreSQL and Prisma ORM 7. Current functionality includes Prisma migrations, a database-aware health check, shared request validation, safe JSON error handling, authentication, customer and product CRUD, transactional order workflows, pagination and filtering, explicit CORS, and authentication rate limiting. See the [API design](api-design.md), [project plan](project-plan.md), and [daily tasks](daily-todos.md).
 
+Container deployment instructions, runtime environment requirements, HTTPS health checks, and migration recovery guidance are in [deployment.md](deployment.md).
+
 ## Local setup
 
 Install Node.js 24 LTS (or a compatible version listed in `package.json`), npm, and PostgreSQL. Start PostgreSQL, then run from the project directory:

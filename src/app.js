@@ -10,6 +10,7 @@ import { rateLimit } from './middleware/rate-limit.js';
 
 export function createApp(database, { tokens = createTokens() } = {}) {
   const app = express();
+  if (process.env.TRUST_PROXY === 'true') app.set('trust proxy', 1);
   const allowedOrigin = process.env.CLIENT_ORIGIN;
   app.use(cors({ origin: (origin, callback) => {
     if (!origin || (allowedOrigin && origin === allowedOrigin)) return callback(null, true);

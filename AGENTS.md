@@ -5,3 +5,4 @@
 - Work daily, and _don't_ implemet everything at once.
 - Do not edit the `notes` folder.
 - REST API
+- Do not use Docker for deployment.
