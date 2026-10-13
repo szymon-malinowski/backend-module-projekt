@@ -8,3 +8,4 @@
 - CORS
 - CRUD methods
 - Prisma
+- Render
