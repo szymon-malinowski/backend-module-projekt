@@ -132,9 +132,9 @@ Each day follows `notes/example-plan.md`: three priorities, the main risk, and a
 
 ## 14 October 2026
 
-- [x] Run final regression checks locally and the local `/health` smoke test; no deployed API URL is available for a live smoke test.
-- [x] Audit submission materials: the GitHub remote, documentation, project plan, ERD/API design, deployment notes, and daily summaries are present; participant-name and live-URL verification remain blocked by missing project/provider details.
-- [x] Prepare the technical walkthrough covering architecture, data model, endpoints, security, tests, migrations, and Render deployment; sharing with the instructor remains pending the verified backend URL.
+- [x] Run final regression checks locally: 7 suites and 67 tests passed after the local PostgreSQL databases were recreated and migrated.
+- [x] Audit submission materials and add Docker deployment documentation; the Docker image definition is present, while the previous hosted health check was unavailable.
+- [x] Prepare the technical walkthrough covering architecture, data model, endpoints, security, tests, migrations, and Docker deployment; instructor handoff remains pending a healthy hosted database connection.
 
 **Risk:** Missing submission details or unexplained implementation choices delay handoff.
 **Mitigation:** Check the definition of done and rehearse the architecture, security, testing, and deployment explanation.

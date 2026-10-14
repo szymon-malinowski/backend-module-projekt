@@ -1,29 +1,53 @@
 # Deployment
 
-Deploy the API to Render as a Node.js service with Render PostgreSQL. Connect Render to this GitHub repository and deploy the reviewed `main` branch after GitHub Actions passes. The root `render.yaml` Blueprint defines the web service, database, migration command, start command, and `/health` check. The release command runs committed Prisma migrations before the application starts; do not use `prisma db push` in production.
+Deploy the REST API as a Docker container with PostgreSQL. Build the image from the repository root and run it in a Docker-compatible hosting environment. The repository contains the production `Dockerfile`.
 
-Configure these runtime secrets and values in the provider dashboard:
+## Docker service
 
-- `DATABASE_URL`: the managed PostgreSQL connection string, including TLS options required by the provider.
-- `JWT_SECRET`: a randomly generated value with at least 32 bytes.
-- `CLIENT_ORIGIN`: the exact HTTPS origin of the approved browser client.
-- `PORT`: the provider-assigned port, if it differs from 3000.
-- `TRUST_PROXY=true`: required when the provider places the app behind a trusted reverse proxy, so rate limiting sees the client IP.
-
-The Render service uses these commands:
+Configure the Docker-compatible service with:
 
 ```text
-Install/build: npm ci
-Release/migration: npm run db:migrate
-Start: npm start
+Runtime: Docker
+Dockerfile path: ./Dockerfile
+Docker context: .
+Start command: defined by the Dockerfile
+Health check path: /health
 ```
 
-Render must expose `GET /health` as its health check and route only HTTPS traffic to the service. Verify the deployment in this order:
+The Docker image installs production dependencies and starts the API with:
 
-```powershell
-Invoke-RestMethod https://YOUR_HOST/health
+```text
+npm start
 ```
 
-Then register a disposable customer, log in, create a product with a staff account, and create an order. Never use real passwords or commit provider credentials. Keep the PostgreSQL database persistent and take provider-managed backups before migration changes. If a migration fails, stop the rollout, inspect sanitized logs, restore the database if necessary, and deploy the previous image; migrations are forward-only and applied before the new process accepts traffic.
+Do not use a Node.js runtime configuration or commit provider credentials.
 
-Render is selected as the deployment target, but no connected Render account or service URL is available in this workspace, so a live URL cannot be recorded yet. GitHub supplies source control and CI; Render runs the API and database. Docker is not required or used.
+## Environment variables
+
+Configure these values in the container host’s environment settings:
+
+- `DATABASE_URL`: the connection URL for the persistent PostgreSQL database. Never use `localhost` or `127.0.0.1` when the database runs outside the container.
+- `JWT_SECRET`: a randomly generated secret of at least 32 bytes.
+- `CLIENT_ORIGIN`: the exact HTTPS origin of the approved browser client.
+- `TRUST_PROXY=true`: required when the container runs behind a trusted reverse proxy.
+- `PORT`: the port exposed and mapped by the container host.
+
+Keep the PostgreSQL database persistent and use provider-managed backups. Apply database schema changes through a reviewed SQL migration or the project’s configured migration process before serving traffic.
+
+## Verification
+
+After deployment, inspect the Docker build and runtime logs, then run:
+
+```bash
+curl -i https://YOUR_HOST/health
+```
+
+The expected response is:
+
+```json
+{"status":"ok","database":"up"}
+```
+
+After the health check succeeds, use disposable test data to verify registration, login, product creation, and order creation. Never use real passwords or production customer data for smoke tests.
+
+If the health check returns `503`, verify that PostgreSQL is running and that `DATABASE_URL` is correct. If the container fails to start, inspect sanitized logs and confirm that the service binds to the configured `PORT`.

@@ -7,5 +7,4 @@
 - Jest
 - CORS
 - CRUD methods
-- Prisma
-- Render
+- Docker
