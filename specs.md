@@ -7,4 +7,4 @@
 - Jest
 - CORS
 - CRUD methods
-- Docker
+- Neon

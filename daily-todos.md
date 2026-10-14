@@ -140,3 +140,12 @@ Each day follows `notes/example-plan.md`: three priorities, the main risk, and a
 **Mitigation:** Check the definition of done and rehearse the architecture, security, testing, and deployment explanation.
 
 The assignment's final deadline is 19 October 2026 at 23:59. This plan targets completion on 14 October, leaving time for instructor feedback and fixes. Continue required daily updates through the project timeline if work continues.
+
+## 15 October 2026
+
+- [ ] Remove the Docker deployment configuration and update the project documentation to use the selected hosting setup.
+- [ ] Create and configure a Neon PostgreSQL database, store its connection string as a secret, and apply the committed database migrations.
+- [ ] Update the API deployment environment and verify `/health` plus disposable end-to-end API smoke tests against Neon PostgreSQL.
+
+**Risk:** The hosted database connection string, SSL settings, or migration state is incorrect.
+**Mitigation:** Use Neon’s pooled connection string with SSL enabled, keep credentials out of Git, run migrations against a disposable/verified database, and inspect sanitized deployment logs before claiming readiness.
