@@ -1,6 +1,6 @@
 # Daily Todo List
 
-Planning period: 30 September–14 October 2026. Implement only the current day's work and mark tasks complete after verification. Existing completion marks are preserved.
+Planning period: 30 September–16 October 2026. Implement only the current day's work and mark tasks complete after verification. Existing completion marks are preserved.
 
 Each day follows `notes/example-plan.md`: three priorities, the main risk, and a mitigation. Send the morning plan between 09:00 and 10:00 Europe/Berlin. After finishing the day's work, write only that day's summary using `notes/example-summary.md`, reporting actual results, the main lesson, and tomorrow's priority. Send the evening update by 23:59. These checklists do not indicate that updates have been sent.
 
@@ -149,3 +149,12 @@ The assignment's final deadline is 19 October 2026 at 23:59. This plan targets c
 
 **Risk:** The hosted database connection string, SSL settings, or migration state is incorrect.
 **Mitigation:** Use Neon’s pooled connection string with SSL enabled, keep credentials out of Git, run migrations against a disposable/verified database, and inspect sanitized deployment logs before claiming readiness.
+
+## 16 October 2026
+
+- [ ] Complete Neon browser authentication and pull the production environment variables without committing secrets.
+- [ ] Apply the committed Prisma migrations to the Neon PostgreSQL production branch and verify the deployed service starts successfully.
+- [ ] Run hosted `/health` and disposable end-to-end API smoke tests, then record the live URL, test results, and any remaining blocker in the daily summary.
+
+**Risk:** Neon authentication or deployment configuration remains unavailable, preventing migration and hosted verification.
+**Mitigation:** Use the already linked Neon project and `production` branch, keep a sanitized local verification path, and document the exact credential or provider dependency instead of claiming unverified deployment success.
