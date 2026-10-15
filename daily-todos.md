@@ -143,9 +143,9 @@ The assignment's final deadline is 19 October 2026 at 23:59. This plan targets c
 
 ## 15 October 2026
 
-- [ ] Remove the Docker deployment configuration and update the project documentation to use the selected hosting setup.
-- [ ] Create and configure a Neon PostgreSQL database, store its connection string as a secret, and apply the committed database migrations.
-- [ ] Update the API deployment environment and verify `/health` plus disposable end-to-end API smoke tests against Neon PostgreSQL.
+- [x] Remove the Docker deployment configuration and update the project documentation to use the selected hosting setup.
+- [ ] Create and configure a Neon PostgreSQL database, store its connection string as a secret, and apply the committed database migrations. **Blocked pending Neon account/project credentials.**
+- [ ] Update the API deployment environment and verify `/health` plus disposable end-to-end API smoke tests against Neon PostgreSQL. **Blocked pending the hosted application/database configuration.**
 
 **Risk:** The hosted database connection string, SSL settings, or migration state is incorrect.
 **Mitigation:** Use Neon’s pooled connection string with SSL enabled, keep credentials out of Git, run migrations against a disposable/verified database, and inspect sanitized deployment logs before claiming readiness.
